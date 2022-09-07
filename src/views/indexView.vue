@@ -1,76 +1,113 @@
 <template>
-  <div>
-    <el-row
-      :gutter="50"
-      justify="center"
-    >
-      <el-col
-        :span="6"
-        class="grid-content"
+  <div id="building">
+    <div>
+      <el-row
+        :gutter="50"
+        class="top-row"
+        justify="center"
       >
-        <el-scrollbar> 
-          <div class=" content-left">
-            <el-card
-              v-for="(item,index) in getUsersData.user"
-              :key="index"
-              class="card-userinfo"
-            >
-              <div class="cssMove">
+        <el-col
+          :span="6"
+          class="grid-top"
+        >
+          <span>抽奖名单  <el-button
+            type="primary"
+            :icon="Edit"
+            circle
+            @click="addUser"
+          /></span>
+        </el-col>
+        <el-col
+          :span="6"
+          class="grid-top"
+        >
+          <span>抽奖</span>
+        </el-col>
+        <el-col
+          :span="6"
+          class="grid-top"
+        >
+          <span>中奖名单</span>
+        </el-col>
+      </el-row>
+      <el-row
+        :gutter="50"
+        class="main-row"
+        justify="center"
+      >
+        <el-col
+          :span="6"
+          class="grid-content"
+        >
+          <el-scrollbar> 
+            <div class=" content-left">
+              <el-card
+                v-for="(item,index) in getUsersData.user"
+                :key="index"
+                class="card-userinfo"
+              >
+                <div class="cssMove">
+                  {{ item.name }}
+                </div>
+              </el-card>
+            </div>
+          </el-scrollbar>
+        </el-col>
+
+        <el-col
+          :span="6"
+          class="grid-content"
+        >
+          <div
+            class="luckly-center"
+            :style="moveCss"
+          >
+            <span>{{ currentLucklyUser }}</span>
+          </div>
+        </el-col>
+
+        <el-col
+          :span="6"
+          class="grid-content"
+        >
+          <el-scrollbar>
+            <div class=" content-left">
+              <el-card
+                v-for="(item,index) in lucklyDogValue.lucklyUser"
+                :key="index"
+                class="card-userinfo"
+              >
                 {{ item.name }}
-              </div>
-            </el-card>
-          </div>
-        </el-scrollbar>
-      </el-col>
-
-      <el-col
-        :span="6"
-        class="grid-content"
+              </el-card>
+            </div>
+          </el-scrollbar>
+        </el-col>
+      </el-row>
+      <el-button
+        class="luckly-button"
+        type="primary"
+        @click="startRoll"
       >
-        <div class="luckly-center">
-          <span>{{ currentLucklyUser }}</span>
-        </div>
-      </el-col>
+        {{ rollStatus }}
+      </el-button>
 
-      <el-col
-        :span="6"
-        class="grid-content"
+      <el-button
+        class="luckly-button"
+        type="primary"
+        @click="resetData"
       >
-        <el-scrollbar>
-          <h1>中奖名单</h1>
-          <div class=" content-left">
-            <el-card
-              v-for="(item,index) in lucklyDogValue.lucklyUser"
-              :key="index"
-              class="card-userinfo"
-            >
-              {{ item.name }}
-            </el-card>
-          </div>
-        </el-scrollbar>
-      </el-col>
-    </el-row>
-    <el-button
-      class="luckly-button"
-      type="primary"
-      @click="startRoll"
-    >
-      开始抽奖
-    </el-button>
-
-    <el-button
-      class="luckly-button"
-      type="primary"
-      @click="resetData"
-    >
-      数据重置
-    </el-button>
+        数据重置
+      </el-button>
+    </div>
   </div>
 </template>
 <script setup>
 import { ref } from 'vue'
 import { usersData } from '../assets/data/data.js'
-import {rollNum}  from '@/utils/rollNum'
+import { rollNum } from '@/utils/rollNum'
+import setTimeEaseOut from '@/utils/setTimeoutRoll'
+import { Edit } from '@element-plus/icons-vue'
+//import { ElMessage, ElMessageBox } from 'element-plus'
 
 
 const refUsersData = ref(usersData) //定义获取文件数据
@@ -78,6 +115,9 @@ const getUsersData = ref() //定义获取浏览器存储的数据
 const getRollNum = ref(0) //定义随机数
 const isBegin = ref(false) //定义开始状态
 const lucklyDogValue = ref() //定义抽中数据
+const moveCss = ref()
+
+const rollStatus=ref('开始抽奖')
 
 const currentLucklyUser = ref()
 
@@ -90,20 +130,23 @@ lucklyDogValue.value = JSON.parse(localStorage.getItem('lucklyDogValue')) || {'l
 
 const startRoll =() => {
 	if (!isBegin.value) {
-		const userValue = getUsersData.value.user
-		console.log(lucklyDogValue.value)
-		//获取随机数
-		getRollNum.value = rollNum(0, userValue.length-1)
-		console.log(getRollNum.value)
-		const lucklyDog = userValue[getRollNum.value]
-		console.log(lucklyDog)
-		if (lucklyDog) {
-			currentLucklyUser.value=lucklyDog.name
-			lucklyDogValue.value.lucklyUser.push(lucklyDog)
-			localStorage.setItem('lucklyDogValue',JSON.stringify(lucklyDogValue.value))
-			getUsersData.value = UpdateUserData()
-			localStorage.setItem('userData',JSON.stringify(getUsersData.value))
-		}
+		startScroll()
+		setTimeout(() => {
+			const userValue = getUsersData.value.user
+			console.log(lucklyDogValue.value)
+			//获取随机数
+			getRollNum.value = rollNum(0, userValue.length - 1)
+			console.log(getRollNum.value)
+			const lucklyDog = userValue[getRollNum.value]
+			console.log(lucklyDog)
+			if (lucklyDog) {
+				currentLucklyUser.value = lucklyDog.name
+				lucklyDogValue.value.lucklyUser.push(lucklyDog)
+				localStorage.setItem('lucklyDogValue', JSON.stringify(lucklyDogValue.value))
+				getUsersData.value = UpdateUserData()
+				localStorage.setItem('userData', JSON.stringify(getUsersData.value))
+			}
+		}, 5000)
 	} else {
 		console.log('停止抽奖')
 	}
@@ -121,7 +164,9 @@ const UpdateUserData = () => {
 	return  newUserData
 }
 
-
+const addUser = () => {
+	
+}
 
 const resetData = () => {
 	lucklyDogValue.value = {'lucklyUser':[]}
@@ -130,6 +175,22 @@ const resetData = () => {
 	getUsersData.value = refUsersData.value
 	localStorage.setItem('userData', JSON.stringify(refUsersData.value))
 }
+
+
+const startScroll = async () => {
+	rollStatus.value='抽奖中...'
+	await setTimeEaseOut(
+		(time) => {
+			const userValueRoll = getUsersData.value.user
+			const roll = userValueRoll[rollNum(0, userValueRoll.length-1)] 
+			currentLucklyUser.value = roll.name
+			console.log(roll.name)
+		},
+		{ timeout: 5000, startSpeed: 100, endSpeed: 500 }
+	).then((time) => console.log(time))
+	rollStatus.value = '开始抽奖'
+}
+
 
 //监听数据变化，更新存储
 // watch(UpdateUserData, () => {
@@ -141,6 +202,19 @@ const resetData = () => {
 </script>
 <style scoped>
 
+#building{
+    background-color: rgb(105, 215, 255);
+    width:100%;
+    height:100%;
+    position:fixed;
+    background-size:100% 100%;
+}
+.top-row{
+    margin-top:30px;
+}
+.main-row{
+    margin-top: 1px;
+}
 .luckly-button{
 	margin-top: 15px;
 	height: 30px;
@@ -149,12 +223,23 @@ const resetData = () => {
 	margin: 20px auto;
 
 }
-.grid-content {
+.grid-top{
+    border-radius: 5px;
+    min-height: 40px;
+    height: 50px;
+    background: rgb(174 234 255 / 83%);
+    padding: 0.8rem 0.5rem !important;
+    margin:0rem 1rem;
+    font-size: 19px;
+    text-align: center;
+    font-weight: 500;
+}
+.grid-content {  
     border-radius: 5px;
     min-height: 400px;
     height: 500px;
-    background: #fee3e3;
-    padding: 0.8rem 0.5rem;
+    background: rgb(174 234 255 / 83%);
+    padding: 0.8rem 0.5rem !important;
     margin:0rem 1rem;
 }
 .content-left{
@@ -163,7 +248,7 @@ const resetData = () => {
     justify-content: space-evenly;
 }
 .card-userinfo{
-    width: 40%;
+    width: 26%;
     margin: 0.5rem 0.3rem;
 }
 .luckly-center {

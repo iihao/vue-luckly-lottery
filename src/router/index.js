@@ -3,9 +3,15 @@ import index from '../views/indexView'
 const routes = [
 	{
 		path: '/',
-		name: 'index',
+		name: '首页',
 		component: index,
+	},
+	{
+		path: '/setting',
+		name: '设置',
+		component: ()=> import ('../views/settingView'),
 	}
+    
 ]
 
 const router = createRouter({
