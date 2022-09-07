@@ -86,6 +86,7 @@
       <el-button
         class="luckly-button"
         type="primary"
+        :disabled="disabled"
         @click="startRoll"
       >
         {{ rollStatus }}
@@ -120,6 +121,8 @@ const moveCss = ref()
 const rollStatus=ref('开始抽奖')
 
 const currentLucklyUser = ref()
+
+const disabled = ref(false)
 
 
 //读取存储
@@ -179,6 +182,7 @@ const resetData = () => {
 
 const startScroll = async () => {
 	rollStatus.value='抽奖中...'
+	disabled.value = true
 	await setTimeEaseOut(
 		(time) => {
 			const userValueRoll = getUsersData.value.user
@@ -189,6 +193,7 @@ const startScroll = async () => {
 		{ timeout: 5000, startSpeed: 100, endSpeed: 500 }
 	).then((time) => console.log(time))
 	rollStatus.value = '开始抽奖'
+	disabled.value = false
 }
 
 
