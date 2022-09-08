@@ -10,12 +10,39 @@
           :span="6"
           class="grid-top"
         >
-          <span>抽奖名单  <el-button
-            type="primary"
-            :icon="Edit"
-            circle
-            @click="addUser"
-          /></span>
+          <span>抽奖名单 
+            <el-button
+              text
+              :icon="Edit"
+              circle
+              @click="dialogShow"
+            />
+
+            <el-dialog
+              v-model="dialogVisible"
+              title="编辑用户"
+              width="40%"
+              draggable
+            >
+              <span> <el-input
+                v-model="usersTextarea"
+                
+                :rows="10"
+                type="textarea"
+                placeholder="Please input"
+              /></span>
+              <template #footer>
+                <span class="dialog-footer">
+                  <el-button @click="dialogShow">取消</el-button>
+                  <el-button
+                    type="primary"
+                    @click="saveUserTextarea"
+                  >保存</el-button>
+                </span>
+              </template>
+            </el-dialog>
+            
+          </span>
         </el-col>
         <el-col
           :span="6"
@@ -27,7 +54,12 @@
           :span="6"
           class="grid-top"
         >
-          <span>中奖名单</span>
+          <span>中奖名单<el-button
+            text
+            :icon="RefreshLeft"
+            circle
+            @click="clearLucklyUser"
+          /></span>
         </el-col>
       </el-row>
       <el-row
@@ -107,7 +139,8 @@ import { ref } from 'vue'
 import { usersData } from '../assets/data/data.js'
 import { rollNum } from '@/utils/rollNum'
 import setTimeEaseOut from '@/utils/setTimeoutRoll'
-import { Edit } from '@element-plus/icons-vue'
+import { Edit,RefreshLeft } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
 //import { ElMessage, ElMessageBox } from 'element-plus'
 
 
@@ -124,10 +157,53 @@ const currentLucklyUser = ref()
 
 const disabled = ref(false)
 
+const dialogVisible = ref(false) //弹出对话框
 
+const usersTextarea = ref('') //用户输入框双向绑定
+
+const getLoaclItem = () => {
 //读取存储
-getUsersData.value = JSON.parse(localStorage.getItem('userData')) || {'user':[]}
-lucklyDogValue.value = JSON.parse(localStorage.getItem('lucklyDogValue')) || {'lucklyUser':[]}
+	getUsersData.value = JSON.parse(localStorage.getItem('userData')) || {'user':[]}
+	lucklyDogValue.value = JSON.parse(localStorage.getItem('lucklyDogValue')) || {'lucklyUser':[]}
+}
+getLoaclItem()
+
+usersTextarea.value = 
+	getUsersData.value.user.map((item, index) => {
+		return item.name
+	})
+		.join('|')
+
+//保存前台填入的用户
+const saveUserTextarea = () => {
+	let newUserData = { user: [] } 
+	const splitValue = usersTextarea.value.split('|')
+	console.log(splitValue)
+	for (let i = 0; i < splitValue.length; i++){
+		const result = {}
+		result.uId = i + 1
+		result.name =  splitValue[i]
+		newUserData.user.push(result)
+	}
+	if (newUserData.user) {
+		localStorage.setItem('userData', JSON.stringify(newUserData))//修改存储
+		// const ret = newUserData.user.filter(item => {
+		// 	let newUser = usersData.user.map(val => val.name)
+		// 	return newUser.indexOf(item.name) ==-1
+		// }).name
+		// usersData.user.push(ret)
+		getLoaclItem() //重新读取存储
+	} else {
+		ElMessage('数据为空，保存失败！')
+	}
+	console.log(newUserData.user)
+	dialogShow()
+}
+
+const dialogShow = () => {
+	dialogVisible.value = !dialogVisible.value
+	console.log(dialogVisible.value)
+}
 
 
 
@@ -163,14 +239,20 @@ const UpdateUserData = () => {
 		return idList.indexOf(item.uId) ==-1
 	})
 	for (let i = 0; i < newData.length;i++){newUserData.user.push(newData[i])}
-	console.log(newUserData)
+	//console.log(newUserData)
 	return  newUserData
 }
 
 const addUser = () => {
 	
 }
+const clearLucklyUser = () => {
+	lucklyDogValue.value = {'lucklyUser':[]}
+	localStorage.setItem('lucklyDogValue', JSON.stringify(lucklyDogValue.value) ) 
+	getUsersData.value = UpdateUserData()
+}
 
+//数据重置(初始化)
 const resetData = () => {
 	lucklyDogValue.value = {'lucklyUser':[]}
 	localStorage.setItem('lucklyDogValue', JSON.stringify(lucklyDogValue.value) )
