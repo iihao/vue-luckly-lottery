@@ -12,7 +12,6 @@
         >
           <span>抽奖名单 
             <el-button
-              text
               :icon="Edit"
               circle
               @click="dialogShow"
@@ -24,13 +23,13 @@
               width="40%"
               draggable
             >
-              <span> <el-input
-                v-model="usersTextarea"
-                
-                :rows="10"
-                type="textarea"
-                placeholder="Please input"
-              /></span>
+              <span> <p style="color:darkgray">请直接填入需要抽奖的人员名称 并用 | 分割</p>
+                <el-input
+                  v-model="usersTextarea" 
+                  :rows="10"
+                  type="textarea"
+                  placeholder="Please input"
+                /></span>
               <template #footer>
                 <span class="dialog-footer">
                   <el-button @click="dialogShow">取消</el-button>
@@ -54,8 +53,7 @@
           :span="6"
           class="grid-top"
         >
-          <span>中奖名单<el-button
-            text
+          <span>中奖名单 <el-button
             :icon="RefreshLeft"
             circle
             @click="clearLucklyUser"
@@ -94,7 +92,9 @@
             class="luckly-center"
             :style="moveCss"
           >
-            <span>{{ currentLucklyUser }}</span>
+            <el-card class="card-content">
+              <span>{{ currentLucklyUser }}</span>
+            </el-card>
           </div>
         </el-col>
 
@@ -163,7 +163,7 @@ const usersTextarea = ref('') //用户输入框双向绑定
 
 const getLoaclItem = () => {
 //读取存储
-	getUsersData.value = JSON.parse(localStorage.getItem('userData')) || {'user':[]}
+	getUsersData.value = JSON.parse(localStorage.getItem('userData')) || refUsersData.value
 	lucklyDogValue.value = JSON.parse(localStorage.getItem('lucklyDogValue')) || {'lucklyUser':[]}
 }
 getLoaclItem()
@@ -187,6 +187,7 @@ const saveUserTextarea = () => {
 	}
 	if (newUserData.user) {
 		localStorage.setItem('userData', JSON.stringify(newUserData))//修改存储
+		localStorage.setItem('usersTextarea', JSON.stringify(newUserData))//新增存储
 		// const ret = newUserData.user.filter(item => {
 		// 	let newUser = usersData.user.map(val => val.name)
 		// 	return newUser.indexOf(item.name) ==-1
@@ -246,10 +247,12 @@ const UpdateUserData = () => {
 const addUser = () => {
 	
 }
+
+//清除中奖数据
 const clearLucklyUser = () => {
 	lucklyDogValue.value = {'lucklyUser':[]}
 	localStorage.setItem('lucklyDogValue', JSON.stringify(lucklyDogValue.value) ) 
-	getUsersData.value = UpdateUserData()
+	getUsersData.value = JSON.parse(localStorage.getItem('usersTextarea'))||refUsersData.value
 }
 
 //数据重置(初始化)
@@ -291,6 +294,7 @@ const startScroll = async () => {
 
 #building{
     background-color: rgb(105, 215, 255);
+    background: url('../assets/img/bg.jpg');
     width:100%;
     height:100%;
     position:fixed;
@@ -311,10 +315,11 @@ const startScroll = async () => {
 
 }
 .grid-top{
-    border-radius: 5px;
+    border-radius: 5px 5px 0 0;
+    color:aliceblue;
     min-height: 40px;
     height: 50px;
-    background: rgb(174 234 255 / 83%);
+    background: rgb(174 234 255 / 15%);
     padding: 0.8rem 0.5rem !important;
     margin:0rem 1rem;
     font-size: 19px;
@@ -322,10 +327,10 @@ const startScroll = async () => {
     font-weight: 500;
 }
 .grid-content {  
-    border-radius: 5px;
+    border-radius:0 0 5px 5px;
     min-height: 400px;
     height: 500px;
-    background: rgb(174 234 255 / 83%);
+    background: rgb(174 234 255 / 15%);
     padding: 0.8rem 0.5rem !important;
     margin:0rem 1rem;
 }
@@ -337,6 +342,7 @@ const startScroll = async () => {
 .card-userinfo{
     width: 26%;
     margin: 0.5rem 0.3rem;
+    text-align: center;
 }
 .luckly-center {
     display: flex;
@@ -345,5 +351,19 @@ const startScroll = async () => {
     height: 100%;
     align-items: center;
     font-size: 100px;
+}
+.card-content{
+    color: #fff;
+    background: #fff0;
+    height: 400px;
+    width: 70%;
+    display: flex;
+    align-items: center;
+    writing-mode: vertical-rl;
+    justify-content: center;
+    text-orientation: upright;
+    border: 2px saddlebrown;
+    box-shadow: 0px 0px 9px 4px #333;
+    font-weight: 400;
 }
 </style>
