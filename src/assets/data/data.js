@@ -25,6 +25,12 @@ export let usersData = {
 		{ 'uId': 23, 'name': '测试6' },  
 		{ 'uId': 24, 'name': '测试7' },  
 		{ 'uId': 25, 'name': '测试8' },
+	],
+	'levelInfo': [
+		{ 'id': 1, 'name': '一等奖', 'prize': 'MacBook 2022','img':'macBook.png' },
+		{ 'id': 2, 'name': '二等奖', 'prize': '扫地机器人' ,'img':'deebot.png'},
+		{ 'id': 3, 'name': '三等奖', 'prize': 'AirPos Pro','img':'airPods.png' },
+		{'id':4,'name':'四等奖','prize':'带薪休假一天','img':'freeday.png'},
 	]
 }
 

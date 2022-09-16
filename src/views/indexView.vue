@@ -1,6 +1,54 @@
 <template>
   <div id="building">
-    <div>
+    <!-- 左侧抽奖信息菜单 -->
+    <div class="menuList">
+      <ul class="menuList-menu">
+        <li
+          v-for="item in getLevelInfo"
+          :key="item.id"
+          :class="currentLevel == item.id-1 ? 'current' :''"
+          @click="changeLevel(item)"
+        >
+          <div class="tip">
+            {{ item.name }}
+          </div>
+          <div class="id">
+            {{ item.id }}
+          </div>
+        </li>
+      </ul>
+    </div>
+    <!-- 奖品信息 -->
+    <div
+      v-if="disabled==false"
+      class="prizeInfo"
+    >
+      <div class="title">
+        {{ getLevelInfo[currentLevel].name }}
+      </div>
+      <div class="img">
+        <img
+          :id="'img' + getLevelInfo[currentLevel].id"
+          :src="require('../assets/img/' + getLevelInfo[currentLevel].img)"
+        >
+      </div>
+      <div class="desc">
+        {{ getLevelInfo[currentLevel].prize }}
+      </div>
+
+      <!-- 临时增加中奖数据 -->
+      <div class=" content-left">
+        <el-card
+          v-for="(item,index) in lucklyDogValue.lucklyUser"
+          :id="index"
+          :key="item.uId"
+          class="card-userinfo"
+        >
+          {{ item.name }}
+        </el-card>
+      </div>    
+    </div>
+    <div v-else>
       <el-row
         :gutter="50"
         class="top-row"
@@ -90,7 +138,6 @@
         >
           <div
             class="luckly-center"
-            :style="moveCss"
           >
             <el-card class="card-content">
               <span>{{ currentLucklyUser }}</span>
@@ -106,7 +153,8 @@
             <div class=" content-left">
               <el-card
                 v-for="(item,index) in lucklyDogValue.lucklyUser"
-                :key="index"
+                :id="index"
+                :key="item.uId"
                 class="card-userinfo"
               >
                 {{ item.name }}
@@ -115,27 +163,31 @@
           </el-scrollbar>
         </el-col>
       </el-row>
-      <el-button
-        class="luckly-button"
-        type="primary"
-        :disabled="disabled"
-        @click="startRoll"
-      >
-        {{ rollStatus }}
-      </el-button>
+    </div>
+    <!-- 开始抽奖按钮 -->
+    <el-button
+      class="luckly-button"
+      type="primary"
+      :disabled="disabled"
+      @click="startRoll"
+    >
+      {{ rollStatus }}
+    </el-button>
 
-      <el-button
-        class="luckly-button"
-        type="primary"
+    <!-- 配置信息 -->
+    <div class="setting">
+      <text
+        class="reSet"
         @click="resetData"
       >
         数据重置
-      </el-button>
+      </text>
     </div>
   </div>
 </template>
 <script setup>
-import { ref } from 'vue'
+
+import { ref,onMounted } from 'vue'
 import { usersData } from '../assets/data/data.js'
 import { rollNum } from '@/utils/rollNum'
 import setTimeEaseOut from '@/utils/setTimeoutRoll'
@@ -145,17 +197,19 @@ import { ElMessage } from 'element-plus'
 
 
 const refUsersData = ref(usersData) //定义获取文件数据
+const getLevelInfo = ref(usersData.levelInfo)
 const getUsersData = ref() //定义获取浏览器存储的数据
 const getRollNum = ref(0) //定义随机数
 const isBegin = ref(false) //定义开始状态
 const lucklyDogValue = ref() //定义抽中数据
-const moveCss = ref()
+const rollStatus = ref('开始抽奖') //抽奖按钮
 
-const rollStatus=ref('开始抽奖')
+const currentLevel = ref(3) //当前抽奖level
 
-const currentLucklyUser = ref()
 
-const disabled = ref(false)
+const currentLucklyUser = ref() //当前中间用户
+
+const disabled = ref(false) //输入框状态
 
 const dialogVisible = ref(false) //弹出对话框
 
@@ -174,6 +228,10 @@ usersTextarea.value =
 	})
 		.join('|')
 
+const changeLevel = (e) => {
+	currentLevel.value = e.id-1
+}
+
 //保存前台填入的用户
 const saveUserTextarea = () => {
 	let newUserData = { user: [] } 
@@ -188,11 +246,6 @@ const saveUserTextarea = () => {
 	if (newUserData.user) {
 		localStorage.setItem('userData', JSON.stringify(newUserData))//修改存储
 		localStorage.setItem('usersTextarea', JSON.stringify(newUserData))//新增存储
-		// const ret = newUserData.user.filter(item => {
-		// 	let newUser = usersData.user.map(val => val.name)
-		// 	return newUser.indexOf(item.name) ==-1
-		// }).name
-		// usersData.user.push(ret)
 		getLoaclItem() //重新读取存储
 	} else {
 		ElMessage('数据为空，保存失败！')
@@ -244,10 +297,6 @@ const UpdateUserData = () => {
 	return  newUserData
 }
 
-const addUser = () => {
-	
-}
-
 //清除中奖数据
 const clearLucklyUser = () => {
 	lucklyDogValue.value = {'lucklyUser':[]}
@@ -280,13 +329,11 @@ const startScroll = async () => {
 	rollStatus.value = '开始抽奖'
 	disabled.value = false
 }
-
-
-//监听数据变化，更新存储
-// watch(UpdateUserData, () => {
-// 	return localStorage.setItem('userData',JSON.stringify(UpdateUserData()))
-// }, { deep: true })
-
+onMounted(() => {
+	getLevelInfo.value = usersData.levelInfo
+	console.log(usersData.levelInfo)
+	console.log(getLevelInfo.value)
+})
 
 
 </script>
@@ -365,5 +412,92 @@ const startScroll = async () => {
     border: 2px saddlebrown;
     box-shadow: 0px 0px 9px 4px #333;
     font-weight: 400;
+}
+.menuList {
+    position: absolute;
+    width: 50px;
+    left: 30px;
+    top: 45%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+}
+ .menuList-menu{
+    width: 100%;
+    margin-top: 100px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    margin: 0;
+    padding: 0;
+}
+.tip {
+    width: 50%;
+    height: 100%;
+    font-size: 16px;
+    transform: scale(0.5);
+    position: relative;
+    line-height: 1;
+    vertical-align: middle;
+}
+.id {
+    width: 50%;
+}
+.menuList-menu li {
+    cursor: pointer;
+    background-color: #383838;
+    color: #777777;
+    width: 50px;
+    height: 50px;
+    list-style: none;
+    display: flex;
+    align-content: center;
+    justify-content: center;
+    border-radius: 5px;
+    margin-bottom: 2px;
+    align-items: center;
+}
+li.current{
+    color: #2d4981;
+}
+
+.title {
+    font-size: 3.5em;
+    font-weight: 900;
+    color: #fa4238;
+    padding-left: 0.3em;
+    letter-spacing: 0.3em;
+    text-align: center;
+}
+.desc {
+    color: white;
+    margin-bottom: 2%;
+    font-size: 2em;
+}
+.img {
+    margin:2% 0;
+}
+.img img{
+    height: 250px;
+    width: auto;
+    object-fit: cover;
+    border-radius: 20px;
+}
+.prizeInfo{
+    display: flex;
+    flex-direction: column;
+    align-content: center;
+    justify-content: center;
+    align-items: center;
+    margin-top: 4%;
+    min-height: 70%;
+}
+.setting {
+    position: absolute;
+    bottom: 0px;
+    /* background: #fff; */
+}
+.reSet{
+    margin:5px;
 }
 </style>
